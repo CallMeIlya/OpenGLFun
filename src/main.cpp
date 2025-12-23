@@ -22,27 +22,33 @@ void processInput(GLFWwindow* window) {
     }
 }
 
-const float VERTICES[] = {
+float VERTICESTRIG[] = {
     //triangle #1
-  -0.5f, -0.5f,  0.0f,
-   0.5f, -0.5f,  0.0f,
-  -0.5f,  0.5f,  0.0f,
-   0.5f,  0.5f,  0.0f,
+    -0.5f, -0.5f,  0.0f,
+     1.0f,  0.0f,  0.0f,
 
-   0.5,   0.5,   0.5,
-   0.5,   0.5,   0.5,
-   0.5,   0.5,   0.5,
- };
-const unsigned int INDECIES[] = {
-    0,1,2,2,3,1
+     0.5f, -0.5f,  0.0f,
+     0.0f,  1.0f,  0.0f,
+
+     0.0f,  0.5f,  0.0f,
+     0.0f,  0.0f,  1.0f,
+
+     0.5f,  0.5f,  0.0f,
+     0.5f,  0.5f,  0.5f
+};
+
+int INDECIES[] = {
+    0,1,2
 };
 
 const char *VertexshaderSource =
     "#version 460 core\n"
     "layout(location = 0) in vec3 aPos;\n"
-    "out vec4 vertexColor;"
+    "layout(location = 1) in vec3 aCol;\n"
+    "out vec4 vertexColor;\n"
     "void main() {\n"
-    "vertexColor = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n" "gl_Position = vertexColor;\n"
+    "gl_Position = vec4(aPos, 1.0);\n"
+    "vertexColor = vec4(aCol, 1.0);\n"
     "}\0";
 const char *FragmentshaderSource =
     "#version 460 core\n"
@@ -50,7 +56,7 @@ const char *FragmentshaderSource =
     "uniform vec4 timeColor;\n"
     "out vec4 FragColor;\n"
     "void main() {\n"
-    "FragColor = abs(vertexColor*timeColor);\n"
+    "FragColor = vertexColor;\n"
     "}\0";
 
 int main() {
@@ -119,11 +125,11 @@ int main() {
         }
     }
 
-
     unsigned int shaderPrograms[2] = {glCreateProgram(), glCreateProgram()};
     if (shaderPrograms[0]== 0) {
         return -4;
     }
+
     glAttachShader(shaderPrograms[0], vertexshader);
     glAttachShader(shaderPrograms[0], fragmentshader);
     glLinkProgram(shaderPrograms[0]);
@@ -149,14 +155,20 @@ int main() {
     glGenVertexArrays(2, VAOs);
     glGenBuffers(2, EBOs);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
 
     glBindVertexArray(VAOs[0]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICESTRIG), VERTICESTRIG, GL_STATIC_DRAW);
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(INDECIES), INDECIES, GL_STATIC_DRAW);
-    glVertexAttribPointer(0,3, GL_FLOAT, GL_TRUE, 0,(void*)0);
+
+    glVertexAttribPointer(0,3, GL_FLOAT, GL_TRUE, 6*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE,  6*sizeof(float), (void*)(3*sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     /*
     glBindVertexArray(VAOs[1]);
@@ -179,9 +191,7 @@ int main() {
         glUseProgram(shaderPrograms[0]);
         glBindVertexArray(VAOs[0]);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        //glUseProgram(shaderPrograms[1]);
-        //glBindVertexArray(VAOs[1]);
+        glDrawElements(GL_TRIANGLE_FAN, 3, GL_UNSIGNED_INT, nullptr);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

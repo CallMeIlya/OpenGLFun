@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 4.1)
-project(OpenGL)
+cmake_minimum_required(VERSION 3.31.6)
+project(OpenGL LANGUAGES C CXX)
 
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
@@ -7,8 +7,8 @@ find_package(glfw3 REQUIRED)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(OpenGL
-        src/main.cpp
         src/glad.c
+        src/main.cpp
 )
 
 target_include_directories(OpenGL PRIVATE include)
