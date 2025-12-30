@@ -1,3 +1,7 @@
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
+
 #include <cmath>
 #include <iostream>
 #include <glad/glad.h>
@@ -47,14 +51,14 @@ int main() {
         return -1;
     }
 
-    const int width = 800;
-    const int height = 600;
+    const int WINDOWWIDTH= 800;
+    const int WINDOWHEIGHT = 600;
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(width, height, "Arch OpenGL", nullptr, nullptr);
+    GLFWwindow* window = glfwCreateWindow(WINDOWWIDTH, WINDOWHEIGHT, "Arch OpenGL", nullptr, nullptr);
 
     if (window == NULL) {
         glfwTerminate();
@@ -68,7 +72,7 @@ int main() {
         return -1;
     }
 
-    glViewport( 0, 0, width, height);
+    glViewport( 0, 0, WINDOWWIDTH, WINDOWHEIGHT);
 
     glfwSetFramebufferSizeCallback(window, glFramebufferSizeCallback);
 
@@ -97,6 +101,9 @@ int main() {
     shader.setFloat("OFFSET", 0.0);
 
     float y = 0;
+
+    int width, height, nrChannels;
+
 
     while (!glfwWindowShouldClose(window)) {
         y = std::fmod(glfwGetTime()*0.5*std::numbers::pi, 4.0)-2.0f;
