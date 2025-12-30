@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_executable(OpenGL
         src/glad.c
         src/main.cpp
+        src/shader.h
 )
 
 target_include_directories(OpenGL PRIVATE include)
