@@ -30,18 +30,26 @@ void processInput(GLFWwindow* window) {
 
 float VERTICESTRIG[] = {
     //triangle #1
-    -1.0f, -1.0f,  0.0f,
+    -0.5f, -0.5f,  0.0f,
      1.0f,  0.0f,  0.0f,
+     1.0f, 1.0f,
 
-     1.0f, -1.0f,  0.0f,
+     0.5f, -0.5f,  0.0f,
      0.0f,  1.0f,  0.0f,
+     1.0f,  0.0f,
 
-     0.0f,  1.0f,  0.0f,
+    -0.5f,  0.5f,  0.0f,
      0.0f,  0.0f,  1.0f,
+     0.0f,  1.0f,
+
+     0.5f, 0.5f, 0.0f,
+     0.0f, 0.0f, 0.0f,
+     0.0f, 0.0f
+
 };
 
 int INDECIES[] = {
-    0,1,2
+    0,1,2, 2,3,1
 };
 
 
@@ -90,11 +98,16 @@ int main() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(INDECIES), INDECIES, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0,3, GL_FLOAT, GL_TRUE, 6*sizeof(float), (void*)0);
+    const unsigned int Stride = 8*sizeof(float);
+
+    glVertexAttribPointer(0,3, GL_FLOAT, GL_TRUE, Stride, (void*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE,  6*sizeof(float), (void*)(3*sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE,  Stride, (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, Stride, (void*)(6*sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     Shader shader = Shader("/home/crystal/CLionProjects/OpenGLFun/src/shaders/vertex.glsl", "/home/crystal/CLionProjects/OpenGLFun/src/shaders/fragment.glsl");
 
@@ -102,20 +115,42 @@ int main() {
 
     float y = 0;
 
-    int width, height, nrChannels;
 
+
+    unsigned int texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    int texWidth, texHeight, nrChannels;
+    unsigned char* data = stbi_load("../textures/wall.jpg", &texWidth, &texHeight, &nrChannels, 0);
+
+    if (data) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        std::cout << "texture loaded successfully" << std::endl;
+    } else {
+        std::cout << "failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
 
     while (!glfwWindowShouldClose(window)) {
         y = std::fmod(glfwGetTime()*0.5*std::numbers::pi, 4.0)-2.0f;
         shader.setFloat("OFFSET", y);
         processInput(window);
-        shader.use();
 
-        //std::cout << y << std::endl;
+
+        glBindTexture(GL_TEXTURE_2D, texture);
 
         glBindVertexArray(VAOs[0]);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
-        glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        shader.use();
 
         glfwSwapBuffers(window);
         glfwPollEvents();

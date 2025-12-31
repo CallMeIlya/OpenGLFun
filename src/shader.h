@@ -70,6 +70,7 @@ public:
         glCompileShader(fragment);
 
         glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+
         if (!success) {
             glad_glGetShaderInfoLog(fragment, 512, NULL, infoLog);
             std::cout << infoLog << std::endl;
@@ -80,6 +81,7 @@ public:
         glAttachShader(ID, fragment);
         glLinkProgram(ID);
         glGetProgramiv(ID, GL_LINK_STATUS, &success);
+
         if (!success) {
             glGetProgramInfoLog(ID, 512, NULL, infoLog);
             std::cout << infoLog << std::endl;

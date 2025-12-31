@@ -1,10 +1,12 @@
 #version 460 core
 
 in vec4 vertexColor;
+in vec2 texPos;
+
+uniform sampler2D ourTexture;
 
 out vec4 FragColor;
 
 void main() {
-    FragColor = vertexColor; //the reason the bottom left corner values are black is because you can't have negative colors.
-    //negative colors get set to 0 or clamped.
+    FragColor = texture(ourTexture, texPos);
 }
