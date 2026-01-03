@@ -11,6 +11,6 @@ out vec2 texPos;
 
 void main() {
     gl_Position = vec4(aPos, 1.0);
-    vertexColor = vec4(aCol, 1.0);
+    vertexColor = vec4(aPos, 1.0);
     texPos = aTex;
 }

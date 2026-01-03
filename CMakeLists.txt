@@ -10,6 +10,7 @@ add_executable(OpenGL
         src/glad.c
         src/main.cpp
         src/shader.h
+        src/shader.cpp
 )
 
 target_include_directories(OpenGL PRIVATE include)

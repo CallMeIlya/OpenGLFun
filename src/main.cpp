@@ -2,6 +2,7 @@
 #include <stb_image.h>
 
 
+
 #include <cmath>
 #include <iostream>
 #include <glad/glad.h>
@@ -16,8 +17,11 @@ void glFramebufferSizeCallback(GLFWwindow* window, const int width, const int he
 void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE)) {
         glfwSetWindowShouldClose(window, true);
-    }
-    if (glfwGetKey(window, GLFW_KEY_F)) {
+    } else if (glfwGetKey(window, GLFW_KEY_EQUAL) && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) {
+
+    } else if(glfwGetKey(window, GLFW_KEY_MINUS) && glfwGetKey(window, GLFW_KEY_LEFT_CONTROL)) {
+
+    } else if (glfwGetKey(window, GLFW_KEY_F)) {
        glClearColor(0.0f,0.0f,0.0f,1.0f);
        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
        glClear(GL_COLOR_BUFFER_BIT);
@@ -32,24 +36,24 @@ float VERTICESTRIG[] = {
     //triangle #1
     -0.5f, -0.5f,  0.0f,
      1.0f,  0.0f,  0.0f,
-     1.0f, 1.0f,
+     0.45, 0.45,
 
      0.5f, -0.5f,  0.0f,
      0.0f,  1.0f,  0.0f,
-     1.0f,  0.0f,
+     0.55f,  0.45,
 
     -0.5f,  0.5f,  0.0f,
      0.0f,  0.0f,  1.0f,
-     0.0f,  1.0f,
+     0.45,  0.55f,
 
      0.5f, 0.5f, 0.0f,
      0.0f, 0.0f, 0.0f,
-     0.0f, 0.0f
+     0.55f, 0.55f
 
 };
 
 int INDECIES[] = {
-    0,1,2, 2,3,1
+    0,1,2,1,2,3
 };
 
 
@@ -115,20 +119,22 @@ int main() {
 
     float y = 0;
 
+    stbi_set_flip_vertically_on_load(true);
 
 
-    unsigned int texture;
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    unsigned int textures[2] = {};
+    glGenTextures(1, &textures[0]);
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     int texWidth, texHeight, nrChannels;
-    unsigned char* data = stbi_load("../textures/wall.jpg", &texWidth, &texHeight, &nrChannels, 0);
 
+    unsigned char* data = stbi_load("../textures/background.jpg", &texWidth, &texHeight, &nrChannels, 0);
+    stbi_set_flip_vertically_on_load(true);
     if (data) {
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
@@ -138,23 +144,55 @@ int main() {
     }
     stbi_image_free(data);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBOs[0]);
+    glGenTextures(1, &textures[1]);
+    glBindTexture(GL_TEXTURE_2D, textures[1]);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    data = stbi_load("../textures/badger.jpg", &texWidth, &texHeight, &nrChannels, 0);
+
+    if (data) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        std::cout << "texture loaded successfully" << std::endl;
+    } else {
+        std::cout << "failed to load texture" << std::endl;
+    }
+    stbi_image_free(data);
+    shader.use();
+
+    shader.setInt("Texture1", 0);
+    shader.setInt("Texture2", 1);
+
 
     while (!glfwWindowShouldClose(window)) {
         y = std::fmod(glfwGetTime()*0.5*std::numbers::pi, 4.0)-2.0f;
         shader.setFloat("OFFSET", y);
         processInput(window);
 
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textures[0]);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, textures[1]);
 
-        glBindTexture(GL_TEXTURE_2D, texture);
-
+        //shader has to be used before rendering to make sure all stuff works :)
+        shader.use();
         glBindVertexArray(VAOs[0]);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
-        shader.use();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    glDeleteVertexArrays(2, VAOs);
+    glDeleteBuffers(2, VBOs);
+    glDeleteBuffers(2, EBOs);
+    glDeleteTextures(2, textures);
+    glDeleteProgram(shader.ID);
+
     glfwTerminate();
 
     return 0;
